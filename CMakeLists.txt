@@ -3,4 +3,4 @@ project(mv)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(mv main.cpp)
+add_executable(mv main.cpp Matrix.cpp Matrix.h Vector.cpp Vector.h)

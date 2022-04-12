@@ -1,19 +1,23 @@
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <iomanip>
 #include <cmath>
+#include <chrono>
+
+#include "Vector.h"
 
 #define VAR 9
 #define LENGTH 3
 
-double** multiplyMatrix(auto& a, auto& b) {
+double** multiplyMatrix(double** a, double** b, int aCol, int bRow) {
     auto** res = new double*[LENGTH];
     for(int i = 0; i < LENGTH; i++) {
         res[i] = new double[LENGTH]{0};
     }
 
-    for(int i = 0; i < LENGTH; i++) {
-        for(int j = 0; j < LENGTH; j++) {
+    for(int i = 0; i < aCol; i++) {
+        for(int j = 0; j < bRow; j++) {
             for(int k = 0; k < LENGTH; k++) {
                 res[i][j] += a[i][k] * b[k][j];
             }
@@ -283,7 +287,7 @@ double** solveLU(LU lu, double** b) {
     for(int i = 0; i < LENGTH; i++) {
         y[i] = new double[1]{0};
     }
-    auto** pb = multiplyMatrix(lu.p, b);
+    auto** pb = multiplyMatrix(lu.p, b, LENGTH, LENGTH);
     for (int q = 0; q < 1; q++) {
         for (int i = 0; i < LENGTH; i++) {
             y[i][q]=pb[i][q];
@@ -373,20 +377,163 @@ LU luFactorize(double** A) {
     return lu;
 }
 
-int main() {
-    //int low_interval = static_cast<int>(pow(-2, VAR/4));
-    //int high_interval = static_cast<int>(pow(2, VAR/4));
+struct LDLT{
+    double** lt;
+    double** d;
+};
 
+LDLT ldFactorize(double** A) {
+    LDLT ldlt{};
 
-    /*std::random_device rd;
-    std::mt19937_64 gen(rd());
-    std::uniform_int_distribution<> distribution(-1, 1);*/
+    for (int i = 0; i < LENGTH; i++) {
+
+    }
+
+    return ldlt;
+}
+
+double** minusMatrix(auto& a, auto& b) {
+    auto** res = new double*[LENGTH];
+    for (int i = 0; i < LENGTH; i++) {
+        res[i] = new double[LENGTH]{0};
+    }
+
+    for(int i = 0; i < LENGTH; i++) {
+        for(int j = 0; j < 1; j++) {
+            res[i][j] = a[i][j] - b[i][j];
+        }
+    }
+
+    return res;
+}
+
+double** sorSolve(double** A, double** b, double param) {
+    auto** x = new double*[LENGTH];
+    for(int i = 0; i < LENGTH; i++) {
+        x[i] = new double[1]{0};
+    }
+
+    double eps = 1e-8;
+    int step = 0;
+    double** m = multiplyMatrix(A, x, LENGTH, 1);
+    double res = cubicNorm(minusMatrix(m, b));
+
+    while(res > eps) {
+        for(int i = 0; i < LENGTH; i++) {
+            double norm = 0;
+            for(int j = 0; j < LENGTH; j++) {
+                if(j != i) {
+                    norm += A[i][j]*x[j][0];
+                }
+            }
+            x[i][0] = (1 - param) * x[i][0] + (param / A[i][i]) * (b[i][0] - norm);
+        }
+        m = multiplyMatrix(A, x, LENGTH, 1);
+        res = cubicNorm(minusMatrix(m, b));
+        step++;
+        //std::cout << "Step: " << step << " Res: " << res << std::endl;
+    }
+
+    return x;
+}
+
+void report() {
+    std::ofstream fout("report.txt");
+
+    double high_interval = std::pow(2, double(VAR)/4);
+    double low_interval = -high_interval;
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> distribution(-3, 3);
+    std::uniform_real_distribution<> distribution(low_interval, high_interval);
 
-    auto** matrix = new double*[LENGTH];
+    double minCond = INT_MAX;
+    double maxCond = INT_MIN;
+    double** maxCondMatrix;
+    double avgCond = 0;
+
+    double avgInverseTime = 0;
+
+    for(int t = 0; t < 100; t++) {
+        auto** matrix = new double*[LENGTH];
+        double rowSum = 0;
+        for(int i = 0; i < LENGTH; i++) {
+            matrix[i] = new double[LENGTH]{0};
+            for(int j = LENGTH - 1; j >= 0; j--) {
+                if(j > i) {
+                    matrix[i][j] = distribution(gen);
+                }
+                else if(j < i) {
+                    matrix[i][j] = matrix[j][i];
+                }
+                rowSum += abs(matrix[i][j]);
+
+                if(j == 0){
+                    matrix[i][i] = rowSum + 1;
+                    rowSum = 0;
+                }
+            }
+        }
+
+        auto* y = new double*[LENGTH];
+        for(int i = 0; i < LENGTH; i++) {
+            y[i] = new double[1]{0};
+            y[i][0] = distribution(gen);
+        }
+
+        double** b = multiplyMatrix(matrix, y, LENGTH, 1);
+
+        std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+        double** inverse = inverseMatrix(matrix);
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+        avgInverseTime += std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+
+        double mc = cubicNorm(matrix);
+        double mi = cubicNorm(inverse);
+        double cond = mc * mi;
+        avgCond += cond;
+        if(cond < minCond) {
+            minCond = cond;
+        }
+        if(cond > maxCond) {
+            maxCond = cond;
+            maxCondMatrix = matrix;
+        }
+
+        double** gauss = solveGauss(matrix, b);
+
+        double** gaussCol = solveGaussCol(matrix, b);
+
+        auto** newMatrix = new double*[LENGTH];
+        for(int i = 0; i < LENGTH; i++) {
+            newMatrix[i] = new double[LENGTH];
+            for(int j = 0; j < LENGTH; j++) {
+                newMatrix[i][j] = matrix[i][j];
+            }
+        }
+        LU lu = luFactorize(matrix);
+
+        double** luSol = solveLU(lu, b);
+
+        double** sor = sorSolve(newMatrix, b, (1 - (double)9/40));
+    }
+
+    fout << "Average condition: " << avgCond / 100 << std::endl;
+    fout << "Min condition: " << minCond << std::endl;
+    fout << "Max condition: " << maxCond << std::endl;
+    fout << "Max condition matrix: " << maxCondMatrix[0][0] << std::endl;
+
+    fout << "Average inverse time: " << avgInverseTime / 100 << " ns" << std::endl;
+}
+
+int main() {
+    double high_interval = std::pow(2, double(VAR)/4);
+    double low_interval = -high_interval;
+
+    Vector v = Vector(LENGTH);
+    v.print();
+
+    /*auto** matrix = new double*[LENGTH];
     double rowSum = 0;
     for(int i = 0; i < LENGTH; i++) {
         matrix[i] = new double[LENGTH]{0};
@@ -418,7 +565,7 @@ int main() {
     std::cout << "Vector y: " << std::endl;
     printVector(y);
 
-    double** b = multiplyMatrix(matrix, y);
+    double** b = multiplyMatrix(matrix, y, LENGTH, 1);
     std::cout << "Vector b: " << std::endl;
     printVector(b);
 
@@ -439,6 +586,13 @@ int main() {
     std::cout << "Gauss Column solution: " << std::endl;
     printVector(gaussCol);
 
+    auto** newMatrix = new double*[LENGTH];
+    for(int i = 0; i < LENGTH; i++) {
+        newMatrix[i] = new double[LENGTH];
+        for(int j = 0; j < LENGTH; j++) {
+            newMatrix[i][j] = matrix[i][j];
+        }
+    }
     LU lu = luFactorize(matrix);
     std::cout << "LUP factorization: " << std::endl;
     std::cout << "LU: " << std::endl;
@@ -447,8 +601,15 @@ int main() {
     printMatrix(lu.p, LENGTH, LENGTH);
 
     double** luSol = solveLU(lu, b);
-    std::cout << "LU solution: " << std::endl;
+    std::cout << "LUP solution: " << std::endl;
     printVector(luSol);
+
+    double** sor = sorSolve(newMatrix, b, (1 - (double)9/40));
+    std::cout << "SOR solution: " << std::endl;
+    printVector(sor);*/
+
+    report();
+
 
     return 0;
 }
