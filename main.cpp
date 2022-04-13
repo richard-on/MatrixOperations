@@ -4,8 +4,12 @@
 #include <iomanip>
 #include <cmath>
 #include <chrono>
+#include <climits>
 
-#include "Vector.h"
+#include "vector.h"
+#include "matrix.h"
+#include "operations.h"
+#include "lu.h"
 
 #define VAR 9
 #define LENGTH 3
@@ -232,7 +236,7 @@ double** solveGaussCol(double** A, double** b) {
     return x;
 }
 
-double** solveGauss(double** A, double** b) {
+double** solveGauss(double** A, double* b) {
     auto** x = new double*[LENGTH];
     for(int i = 0; i < LENGTH; i++) {
         x[i] = new double[1]{0};
@@ -243,7 +247,7 @@ double** solveGauss(double** A, double** b) {
         res[i] = new double[LENGTH + 1]{0};
         for(int j = 0; j < LENGTH + 1; j++) {
             if(j == LENGTH) {
-                res[i][j] = b[i][0];
+                res[i][j] = b[i];
             }
             else {
                 res[i][j] = A[i][j];
@@ -500,7 +504,7 @@ void report() {
             maxCondMatrix = matrix;
         }
 
-        double** gauss = solveGauss(matrix, b);
+        //double** gauss = solveGauss(Matrix, b);
 
         double** gaussCol = solveGaussCol(matrix, b);
 
@@ -521,7 +525,7 @@ void report() {
     fout << "Average condition: " << avgCond / 100 << std::endl;
     fout << "Min condition: " << minCond << std::endl;
     fout << "Max condition: " << maxCond << std::endl;
-    fout << "Max condition matrix: " << maxCondMatrix[0][0] << std::endl;
+    fout << "Max condition Matrix: " << maxCondMatrix[0][0] << std::endl;
 
     fout << "Average inverse time: " << avgInverseTime / 100 << " ns" << std::endl;
 }
@@ -530,24 +534,79 @@ int main() {
     double high_interval = std::pow(2, double(VAR)/4);
     double low_interval = -high_interval;
 
-    Vector v = Vector(LENGTH);
-    v.print();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distribution(low_interval, high_interval);
 
-    /*auto** matrix = new double*[LENGTH];
     double rowSum = 0;
-    for(int i = 0; i < LENGTH; i++) {
-        matrix[i] = new double[LENGTH]{0};
-        for(int j = LENGTH - 1; j >= 0; j--) {
+    Matrix m = Matrix(LENGTH);
+    for(int i = 0; i < m.length(); i++) {
+        for(int j = m.length() - 1; j >= 0; j--) {
             if(j > i) {
-                matrix[i][j] = distribution(gen);
+                m(i, j) = distribution(gen);
             }
             else if(j < i) {
-                matrix[i][j] = matrix[j][i];
+                m(i, j) = m(j, i);
             }
-            rowSum += abs(matrix[i][j]);
+            rowSum += std::abs(m(i, j));
 
             if(j == 0){
-                matrix[i][i] = rowSum + 1;
+                m(i, i) = rowSum + 1;
+                rowSum = 0;
+            }
+        }
+    }
+    std::cout << "Initial Matrix: " << m << std::endl;
+
+    Vector y = Vector(LENGTH);
+    for(int i = 0; i < m.length(); i++) {
+        y(i) = distribution(gen);
+    }
+    std::cout << "Vector y: " << y << std::endl;
+
+    Vector b = m * y;
+    std::cout << "Vector b: " << b << std::endl;
+
+    Matrix inverseM = m.inverse();
+    std::cout << "inverse Matrix: " << inverseM << std::endl;
+    std::cout << "Condition number: " << m.condition() << std::endl;
+
+    Vector gauss = operations::solveGauss(m, b);
+    std::cout << "Gauss: " << gauss << std::endl;
+
+    Vector gaussCol = operations::solveGaussCol(m, b);
+    std::cout << "Gauss column: " << gaussCol << std::endl;
+
+    lu lup = lu(m);
+    std::cout << "LUP factorization: " << std::endl;
+    std::cout << "LU: " << lup.getData() << std::endl;
+    std::cout << "P: " << lup.getP() << std::endl;
+
+    Vector luSol = lup.solve(b);
+    std::cout << "LUP solution: " << luSol << std::endl;
+
+    Vector sor = operations::solveSOR(m, b, (1 - (double)9 / 40));
+    std::cout << "SOR: " << sor << std::endl;
+
+
+
+
+
+    /*auto** Matrix = new double*[LENGTH];
+    double rowSum = 0;
+    for(int i = 0; i < LENGTH; i++) {
+        Matrix[i] = new double[LENGTH]{0};
+        for(int j = LENGTH - 1; j >= 0; j--) {
+            if(j > i) {
+                Matrix[i][j] = distribution(gen);
+            }
+            else if(j < i) {
+                Matrix[i][j] = Matrix[j][i];
+            }
+            rowSum += abs(Matrix[i][j]);
+
+            if(j == 0){
+                Matrix[i][i] = rowSum + 1;
                 rowSum = 0;
             }
         }
@@ -559,30 +618,30 @@ int main() {
         y[i][0] = distribution(gen);
     }
 
-    std::cout << "Initial matrix: " << std::endl;
-    printMatrix(matrix, LENGTH, LENGTH);
+    std::cout << "Initial Matrix: " << std::endl;
+    printMatrix(Matrix, LENGTH, LENGTH);
 
     std::cout << "Vector y: " << std::endl;
     printVector(y);
 
-    double** b = multiplyMatrix(matrix, y, LENGTH, 1);
+    double** b = multiplyMatrix(Matrix, y, LENGTH, 1);
     std::cout << "Vector b: " << std::endl;
     printVector(b);
 
-    double** inverse = inverseMatrix(matrix);
-    std::cout << "Inverse matrix: " << std::endl;
+    double** inverse = inverseMatrix(Matrix);
+    std::cout << "Inverse Matrix: " << std::endl;
     printMatrix(inverse, LENGTH, LENGTH);
 
-    double mc = cubicNorm(matrix);
+    double mc = cubicNorm(Matrix);
     double mi = cubicNorm(inverse);
     double cond = mc * mi;
     std::cout << "Cond: " << cond << std::endl;
 
-    double** gauss = solveGauss(matrix, b);
+    double** gauss = solveGauss(Matrix, b);
     std::cout << "Gauss solution: " << std::endl;
     printVector(gauss);
 
-    double** gaussCol = solveGaussCol(matrix, b);
+    double** gaussCol = solveGaussCol(Matrix, b);
     std::cout << "Gauss Column solution: " << std::endl;
     printVector(gaussCol);
 
@@ -590,10 +649,10 @@ int main() {
     for(int i = 0; i < LENGTH; i++) {
         newMatrix[i] = new double[LENGTH];
         for(int j = 0; j < LENGTH; j++) {
-            newMatrix[i][j] = matrix[i][j];
+            newMatrix[i][j] = Matrix[i][j];
         }
     }
-    LU lu = luFactorize(matrix);
+    LU lu = luFactorize(Matrix);
     std::cout << "LUP factorization: " << std::endl;
     std::cout << "LU: " << std::endl;
     printMatrix(lu.lu, LENGTH, LENGTH);
