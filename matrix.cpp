@@ -16,7 +16,7 @@ Matrix::Matrix(int len) {
     }
 }
 
-Matrix::Matrix(int len, double **data) {
+Matrix::Matrix(int len, double data[4][4]) {
     if(len < 2) {
         throw std::invalid_argument("incorrect Matrix dimensions");
     }
@@ -302,6 +302,160 @@ Matrix Matrix::inverse() {
     delete[] m;
 
     return res;
+}
+
+Matrix Matrix::transpose() {
+    Matrix t = Matrix(this->len);
+    for (int i = 0; i < this->len; i++) {
+        for (int j = 0; j < this->len; j++) {
+            t(i, j) = (*this)(j, i);
+        }
+    }
+
+    return t;
+}
+
+Vector Matrix::solveGauss(const Vector &b) {
+    Vector x(b.length());
+
+    auto** res = new double*[this->len];
+    for (int i = 0; i < this->len; i++) {
+        res[i] = new double[this->len + 1]{0};
+        for(int j = 0; j < this->len + 1; j++) {
+            if(j == this->len) {
+                res[i][j] = b(i);
+            }
+            else {
+                res[i][j] = this->data[i][j];
+            }
+        }
+    }
+
+    for (int i = 0; i < this->len - 1; i++) {
+        for (int j = i + 1; j < this->len; j++) {
+            double d = res[j][i]/res[i][i];
+            for(int k = 0; k < this->len + 1; k++) {
+                res[j][k] = res[j][k]-d*res[i][k];
+            }
+        }
+    }
+
+    for(int i = this->len - 1; i >= 0; i--) {
+        x(i) = res[i][this->len];
+        for(int j = i + 1; j < this->len; j++) {
+            if(i != j) {
+                x(i) = x(i) - (res[i][j] * x(j));
+            }
+        }
+        x(i) = x(i) / res[i][i];
+    }
+
+    for(int i = 0; i < len; i++){
+        delete[] res[i];
+    }
+    delete[] res;
+
+    return x;
+}
+
+Vector Matrix::solveGaussCol(const Vector &b) {
+    Vector x(b.length());
+
+    double aa, bb;
+
+    auto** res = new double*[this->len];
+    for (int i = 0; i < this->len; i++) {
+        res[i] = new double[this->len + 1]{0};
+        for(int j = 0; j < this->len + 1; j++) {
+            if(j == this->len) {
+                res[i][j] = b(i);
+            }
+            else {
+                res[i][j] = this->data[i][j];
+            }
+        }
+    }
+
+    for (int i = 0, k = 0; k < this->len; k++) {
+        aa = std::abs(res[k][k]);
+        i = k;
+        for(int m = k + 1; m < this->len; m++) {
+            if (std::abs(res[m][k]) > aa) {
+                i = m;
+                aa = std::abs(res[m][k]);
+            }
+        }
+
+        if (aa == 0) {
+            throw std::invalid_argument("system doesn't have any solutions");
+        }
+
+        if (i != k) {
+            for (int j = k; j < this->len + 1; j++) {
+                bb = res[k][j];
+                res[k][j] = res[i][j];
+                res[i][j] = bb;
+            }
+        }
+
+        aa = res[k][k];
+        res[k][k] = 1;
+        for (int j = k + 1; j < this->len + 1; j++) {
+            res[k][j] = res[k][j] / aa;
+        }
+        for (i = k + 1; i < this->len; i++) {
+            bb = res[i][k];
+            res[i][k] = 0;
+            if (bb != 0) {
+                for (int j = k + 1; j < this->len + 1; j++) {
+                    res[i][j] = res[i][j] - bb * res[k][j];
+                }
+            }
+        }
+    }
+
+    for(int i = this->len - 1; i >= 0; i--) {
+        x(i) = res[i][this->len];
+        for(int j = i + 1; j < this->len; j++) {
+            if(i != j) {
+                x(i) = x(i) - (res[i][j] * x(j));
+            }
+        }
+        x(i) = x(i) / res[i][i];
+    }
+
+    for(int i = 0; i < len; i++){
+        delete[] res[i];
+    }
+    delete[] res;
+
+    return x;
+}
+
+Sor Matrix::solveSOR(const Vector &b, double param, double eps) {
+    Vector x(b.length());
+
+    int step = 0;
+    Vector m = *this * x;
+    double res = (m - b).norm();
+
+    while(res > eps) {
+        for(int i = 0; i < this->len; i++) {
+            double norm = 0;
+            for(int j = 0; j < this->len; j++) {
+                if(j != i) {
+                    norm += this->data[i][j]*x(j);
+                }
+            }
+            x(i) = (1 - param) * x(i) + (param / this->data[i][i]) * (b(i) - norm);
+        }
+        res = (*this * x - b).norm();
+        step++;
+    }
+
+    Sor sorSolution{step, x};
+
+    return sorSolution;
 }
 
 

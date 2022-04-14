@@ -1,8 +1,7 @@
 #include <cmath>
 #include "lu.h"
-#include "operations.h"
 
-lu::lu(Matrix a) {
+LU::LU(Matrix a) {
     int exc = 0, row = 0;
 
     Matrix e = Matrix(a.length());
@@ -62,41 +61,41 @@ lu::lu(Matrix a) {
         }
     }
 
-    this->data = a;
-    this->e = e;
+    this->lu = a;
+    this->p = e;
 
 }
 
-Vector lu::solve(const Vector& b) {
-    Vector x(data.length());
-    Vector y(data.length());
+Vector LU::solve(const Vector& b) {
+    Vector x(lu.length());
+    Vector y(lu.length());
 
-    Vector pb = e * b;
-    for (int i = 0; i < data.length(); i++) {
+    Vector pb = p * b;
+    for (int i = 0; i < lu.length(); i++) {
         y(i)=pb(i);
         int j = 0;
         while (j < i) {
-            y(i) -= data(i, j)*y(j);
+            y(i) -= lu(i, j) * y(j);
             j++;
         }
     }
-    for (int i = data.length() - 1; i > -1; i--) {
+    for (int i = lu.length() - 1; i > -1; i--) {
         x(i)=y(i);
         int j = i+1;
-        while (j < data.length()) {
-            x(i) -= data(i, j)*x(j);
+        while (j < lu.length()) {
+            x(i) -= lu(i, j) * x(j);
             j++;
         }
-        x(i)=x(i)/data(i, i);
+        x(i)= x(i) / lu(i, i);
     }
 
     return x;
 }
 
-const Matrix &lu::getData() const {
-    return data;
+const Matrix &LU::getLU() const {
+    return lu;
 }
 
-const Matrix &lu::getP() const {
-    return e;
+const Matrix &LU::getP() const {
+    return p;
 }

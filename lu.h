@@ -4,19 +4,19 @@
 #include "matrix.h"
 #include "vector.h"
 
-class lu {
+class LU {
 public:
-    explicit lu(Matrix a);
+    explicit LU(Matrix a);
 
     Vector solve(const Vector& b);
 
-    const Matrix &getData() const;
+    const Matrix &getLU() const;
 
     const Matrix &getP() const;
 
 private:
-    Matrix e;
-    Matrix data;
+    Matrix lu;
+    Matrix p;
 };
 
 
