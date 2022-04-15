@@ -1,48 +1,48 @@
 ----------CONDITIONS----------
-Avg condition number: 4.68316
-Min condition number: 4.52488
-Max condition number: 4.85023
+Avg condition number: 4.6867
+Min condition number: 4.52446
+Max condition number: 4.91999
 
 ----------INVERSE----------
-Avg inverse time: 5.8 ms
+Avg inverse time: 16 ms
 
 ----------GAUSS----------
-Avg time: 2.38 ms
+Avg time: 4.16 ms
 
-Min norm: 4.66927e-13
-Max norm: 6.53429e-13
-Avg norm: 5.52885e-13
+Min norm: 4.67654e-13
+Max norm: 6.53685e-13
+Avg norm: 5.54532e-13
 
 ----------GAUSS COLUMN----------
-Avg time: 1.07 ms
+Avg time: 2.27 ms
 
-Min norm: 4.67005e-13
-Max norm: 6.44179e-13
-Avg norm: 5.5441e-13
+Min norm: 4.27564e-13
+Max norm: 6.21017e-13
+Avg norm: 5.55793e-13
 
 ----------LUP FACTORIZATION----------
-Avg time: 27.05 ms
+Avg time: 23.68 ms
 
 ----------LUP SOLUTION----------
 Avg time: 0 ms
 
-Min norm: 4.66927e-13
-Max norm: 6.53429e-13
-Avg norm: 5.52885e-13
+Min norm: 4.67654e-13
+Max norm: 6.53685e-13
+Avg norm: 5.54532e-13
 
 ----------LDLT FACTORIZATION AND SOLUTION----------
-Avg time: 28.18 ms
+Avg time: 24.62 ms
 
-Min norm: 3.36307e-13
-Max norm: 4.69809e-13
-Avg norm: 4.13678e-13
+Min norm: 3.35117e-13
+Max norm: 4.73434e-13
+Avg norm: 4.09275e-13
 
 ----------SOR----------
-Avg time: 9.63 ms
+Avg time: 6.24 ms
 
-Min norm: 6.34557e-12
-Max norm: 1.35775e-11
-Avg norm: 1.00033e-11
+Min norm: 5.42516e-12
+Max norm: 1.75068e-11
+Avg norm: 9.98289e-12
 
 Min steps: 24
 Max steps: 24

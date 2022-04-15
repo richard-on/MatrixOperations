@@ -449,6 +449,9 @@ Sor Matrix::solveSOR(const Vector &b, double param, double eps) {
         res = (*this * x - b).norm();
         residual.push_back(res);
         step++;
+        if (step > 50) {
+            break;
+        }
     }
 
     Sor sorSolution{step, residual, x};

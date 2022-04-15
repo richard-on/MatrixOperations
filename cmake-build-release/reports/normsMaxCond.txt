@@ -1,0 +1,35 @@
+---------Default Vector b norms-----------
+Gauss: 5.32778e-13
+Gauss Column: 5.48481e-13
+LUP: 5.32778e-13
+LDLT: 4.1847e-13
+SOR: 9.08831e-12
+
+---------Diff Norm 2-----------
+Gauss: 0.0210717
+Gauss Column: 0.0210717
+LUP: 0.0210717
+LDLT: 0.0210717
+SOR: 0.0210717
+
+---------Diff Norm 3-----------
+Gauss: 0.0212254
+Gauss Column: 0.0212254
+LUP: 0.0212254
+LDLT: 0.0212254
+SOR: 0.0212254
+
+---------Diff Norm 4-----------
+Gauss: 0.0214776
+Gauss Column: 0.0214776
+LUP: 0.0214776
+LDLT: 0.0214776
+SOR: 0.0214776
+
+---------Diff Norm 5-----------
+Gauss: 0.0222457
+Gauss Column: 0.0222457
+LUP: 0.0222457
+LDLT: 0.0222457
+SOR: 0.0222457
+

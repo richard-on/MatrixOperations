@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <random>
-#include <iomanip>
 #include <cmath>
 #include <chrono>
 #include <climits>
@@ -12,133 +11,6 @@
 #include "ldlt.h"
 
 #define VAR 9
-
-/*void report() {
-    std::ofstream fout("report.txt");
-
-    double high_interval = std::pow(2, double(VAR)/4);
-    double low_interval = -high_interval;
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> distribution(low_interval, high_interval);
-
-    double minCond = INT_MAX;
-    double maxCond = INT_MIN;
-    double** maxCondMatrix;
-    double avgCond = 0;
-
-    double avgInverseTime = 0;
-
-    for(int t = 0; t < 100; t++) {
-        auto** matrix = new double*[LENGTH];
-        double rowSum = 0;
-        for(int i = 0; i < LENGTH; i++) {
-            matrix[i] = new double[LENGTH]{0};
-            for(int j = LENGTH - 1; j >= 0; j--) {
-                if(j > i) {
-                    matrix[i][j] = distribution(gen);
-                }
-                else if(j < i) {
-                    matrix[i][j] = matrix[j][i];
-                }
-                rowSum += abs(matrix[i][j]);
-
-                if(j == 0){
-                    matrix[i][i] = rowSum + 1;
-                    rowSum = 0;
-                }
-            }
-        }
-
-        auto* y = new double*[LENGTH];
-        for(int i = 0; i < LENGTH; i++) {
-            y[i] = new double[1]{0};
-            y[i][0] = distribution(gen);
-        }
-
-        double** b = multiplyMatrix(matrix, y, LENGTH, 1);
-
-        std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
-        double** inverse = inverseMatrix(matrix);
-        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-        avgInverseTime += std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-
-        double mc = cubicNorm(matrix);
-        double mi = cubicNorm(inverse);
-        double cond = mc * mi;
-        avgCond += cond;
-        if(cond < minCond) {
-            minCond = cond;
-        }
-        if(cond > maxCond) {
-            maxCond = cond;
-            maxCondMatrix = matrix;
-        }
-
-        //double** gauss = solveGauss(Matrix, b);
-
-        double** gaussCol = solveGaussCol(matrix, b);
-
-        auto** newMatrix = new double*[LENGTH];
-        for(int i = 0; i < LENGTH; i++) {
-            newMatrix[i] = new double[LENGTH];
-            for(int j = 0; j < LENGTH; j++) {
-                newMatrix[i][j] = matrix[i][j];
-            }
-        }
-        LU lu = luFactorize(matrix);
-
-        double** luSol = solveLU(lu, b);
-
-        double** sor = sorSolve(newMatrix, b, (1 - (double)9/40));
-    }
-
-    fout << "Average condition: " << avgCond / 100 << std::endl;
-    fout << "Min condition: " << minCond << std::endl;
-    fout << "Max condition: " << maxCond << std::endl;
-    fout << "Max condition Matrix: " << maxCondMatrix[0][0] << std::endl;
-
-    fout << "Average inverse time: " << avgInverseTime / 100 << " ns" << std::endl;
-}*/
-/*void example(double li, double hi) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> distribution((int(li)), int(hi));
-
-    Matrix m = generateMatrix(5, li, hi);
-    std::cout << "Initial Matrix: " << m << std::endl;
-
-    Vector y = Vector(LENGTH);
-    for(int i = 0; i < m.length(); i++) {
-        y(i) = distribution(gen);
-    }
-    std::cout << "Vector y: " << y << std::endl;
-
-    Vector b = m * y;
-    std::cout << "Vector b: " << b << std::endl;
-
-    Matrix inverseM = m.inverse();
-    std::cout << "Inverse Matrix: " << inverseM << std::endl;
-    std::cout << "Condition number: " << m.condition() << std::endl;
-
-    Vector gauss = m.solveGauss(b);
-    std::cout << "Gauss: " << gauss << std::endl;
-
-    Vector gaussCol = m.solveGaussCol(b);
-    std::cout << "Gauss column: " << gaussCol << std::endl;
-
-    LU lup = LU(m);
-    std::cout << "LUP factorization: " << std::endl;
-    std::cout << "LU: " << lup.getLU() << std::endl;
-    std::cout << "P: " << lup.getP() << std::endl;
-
-    Vector luSol = lup.solve(b);
-    std::cout << "LUP solution: " << luSol << std::endl;
-
-    Sor sor = m.solveSOR(b, (1 - (double)9 / 40));
-    std::cout << "SOR: " << sor.x << std::endl;
-}*/
 
 //Stores min, max and sum of norms for the report
 struct mData {
@@ -303,15 +175,15 @@ void checkMatrix(double li, double hi, Matrix m, const std::string& fileName) {
 
     Vector ldltSol = LDLT(m).solve(b);
 
-    /*Sor sor = m.solveSOR(b, (1 - (double)9 / 40), 1e-8);
-    fout << "SOR: " << sor.x << std::endl;*/
+    Sor sor = m.solveSOR(b, (1 - (double)9 / 40), 1e-8);
+    fout << "SOR: " << sor.x << std::endl;
 
     fout << "-----------------NORM(SOLUTION - PRECISE)------------------" << std::endl;
     fout << "Gauss norm: " << (gauss - y).norm() << std::endl;
     fout << "GaussCol norm: " << (gaussCol - y).norm() << std::endl;
     fout << "LUP norm: " << (luSol - y).norm() << std::endl;
     fout << "LDLT norm: " << (ldltSol - y).norm() << std::endl;
-    //fout << "SOR norm: " << (sor - y).norm() << std::endl;
+    fout << "SOR norm: " << (sor.x - y).norm() << std::endl;
 
 }
 
@@ -435,7 +307,6 @@ void generateReport(int var, int tries, const std::string& reportFileName, const
         mout << std::endl;
     }
 
-
     fout << "----------INVERSE----------" << std::endl;
     fout << "Avg inverse time: " << (double)inverse.sumTime / tries << " ms" << std::endl;
     fout << std::endl;
@@ -500,11 +371,6 @@ int main() {
 
     generateReport(VAR, 100, "reports/report.txt", "reports/maxMatrix.txt");
 
-    /*double arrA1[4][4] = {{std::pow(VAR, 2) + 15, VAR - 1, -1, -2},
-                          {VAR - 1, -15 - std::pow(VAR, 2), -VAR + 4, -4},
-                          {-1, -VAR + 4, std::pow(VAR, 2) + 8, -VAR},
-                          {-2, -4, -VAR, std::pow(VAR, 2) + 10}};*/
-
     auto** arrA1 = new double*[4];
     arrA1[0] = new double[4]{std::pow(VAR, 2) + 15, VAR - 1, -1, -2};
     arrA1[1] = new double[4]{VAR - 1, -15 - std::pow(VAR, 2), -VAR + 4, -4};
@@ -568,54 +434,11 @@ int main() {
         }
     }
 
-    exploreRes(li, hi, maxCond, "reports/maxCondTest.txt");
+    exploreRes(li, hi, maxCond, "reports/normsMaxCond.txt");
 
     getDiagramData(li, hi, maxCond, 0.8, "reports/plot/a1Plot08.txt");
     getDiagramData(li, hi, maxCond, 1.0, "reports/plot/a1Plot10.txt");
     getDiagramData(li, hi, maxCond, 1.2, "reports/plot/a1Plot12.txt");
-
-    getDiagramData(li, hi, A2, 0.8, "reports/plot/a2Plot08.txt");
-    getDiagramData(li, hi, A2, 1.0, "reports/plot/a2Plot10.txt");
-    getDiagramData(li, hi, A2, 1.2, "reports/plot/a2Plot12.txt");
-
-    Matrix m = generateMatrix(3, li, hi);
-    std::cout << "Initial Matrix: " << m << std::endl;
-
-    Vector y = Vector(3);
-    for(int i = 0; i < 3; i++) {
-        y(i) = int(distribution(gen));
-    }
-    std::cout << "Vector y: " << y << std::endl;
-
-    Vector b = m * y;
-    std::cout << "Vector b: " << b << std::endl;
-
-    /*Matrix inverseM = a1.inverse();
-    std::cout << "Inverse Matrix: " << inverseM << std::endl;
-    std::cout << "Condition number: " << a1.condition() << std::endl;
-
-    Vector gauss = a1.solveGauss(b);
-    std::cout << "Gauss: " << gauss << std::endl;
-
-    Vector gaussCol = a1.solveGaussCol(b);
-    std::cout << "Gauss column: " << gaussCol << std::endl;
-
-    LU lup = LU(a1);
-    std::cout << "LUP factorization: " << std::endl;
-    std::cout << "LU: " << lup.getLU() << std::endl;
-    std::cout << "P: " << lup.getP() << std::endl;
-
-    Vector luSol = lup.solve(b);
-    std::cout << "LUP solution: " << luSol << std::endl;
-
-
-    LDLT ldlt = LDLT(m);
-    std::cout << ldlt.getD() << ldlt.getLLT() << ldlt.solve(b);
-
-    Sor sor = a1.solveSOR(b, (1 - (double)9 / 40));
-    std::cout << "SOR: " << sor.x << std::endl;*/
-
-
 
 
     return 0;
