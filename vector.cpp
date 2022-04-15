@@ -125,26 +125,26 @@ std::ostream &operator<<(std::ostream &ostream, const Vector &vector) {
     ostream << std::endl;
     for (int i = 0; i < vector.length(); i++) {
         if(i == 0) {
-            std::cout << "/";
+            ostream << "/";
         }
         else if(i == vector.length() - 1) {
-            std::cout << "\\";
+            ostream << "\\";
         }
         else{
-            std::cout << "|";
+            ostream << "|";
         }
-        std::cout << std::setw(6) << std::setprecision(3) << vector(i);
+        ostream << std::setw(8) << std::setprecision(3) << vector(i);
         if(i == 0) {
-            std::cout << "\\";
+            ostream << "\\";
         }
         else if(i == vector.length() - 1) {
-            std::cout << "/";
+            ostream<< "/";
         }
         else{
-            std::cout << "|";
+            ostream << "|";
         }
 
-        std::cout << std::endl;
+        ostream << std::endl;
     }
 
     return ostream;

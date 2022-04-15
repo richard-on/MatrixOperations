@@ -3,11 +3,13 @@
 
 #include <iosfwd>
 #include <climits>
+#include <vector>
 
 #include "vector.h"
 
 struct Sor{
     int step;
+    std::vector<double> residual;
     Vector x;
 };
 
@@ -15,7 +17,7 @@ class Matrix {
 public:
     explicit Matrix(int len = 2);
 
-    Matrix(int len, double data[4][4]);
+    Matrix(int len, double** data);
 
     Matrix(const Matrix& other);
 
@@ -36,8 +38,10 @@ public:
 
     Matrix operator - (const Matrix &other) const;
 
+    //Multiply matrix by another matrix, result is matrix
     Matrix operator * (const Matrix &other) const;
 
+    //Multiply matrix by vector, result is vector
     Vector operator * (const Vector &other) const;
 
     friend std::ostream& operator << (std::ostream& ostream, const Matrix& matrix);
@@ -53,7 +57,7 @@ public:
 
     Matrix inverse();
 
-    Matrix transpose();
+    Matrix transpose() const;
 
     Vector solveGauss(const Vector& b);
 

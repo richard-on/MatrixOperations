@@ -16,7 +16,7 @@ Matrix::Matrix(int len) {
     }
 }
 
-Matrix::Matrix(int len, double data[4][4]) {
+Matrix::Matrix(int len, double** data) {
     if(len < 2) {
         throw std::invalid_argument("incorrect Matrix dimensions");
     }
@@ -197,7 +197,7 @@ std::ostream &operator<<(std::ostream &ostream, const Matrix &matrix) {
 
         for (int j = 0; j < matrix.length(); j++) {
 
-            ostream << std::setw(8) << std::setprecision(3) << matrix(i, j) << " ";
+            ostream << std::setw(10) << std::setprecision(3) << matrix(i, j) << " ";
         }
         if(i == 0) {
             ostream << "\\";
@@ -304,7 +304,7 @@ Matrix Matrix::inverse() {
     return res;
 }
 
-Matrix Matrix::transpose() {
+Matrix Matrix::transpose() const {
     Matrix t = Matrix(this->len);
     for (int i = 0; i < this->len; i++) {
         for (int j = 0; j < this->len; j++) {
@@ -386,10 +386,6 @@ Vector Matrix::solveGaussCol(const Vector &b) {
             }
         }
 
-        if (aa == 0) {
-            throw std::invalid_argument("system doesn't have any solutions");
-        }
-
         if (i != k) {
             for (int j = k; j < this->len + 1; j++) {
                 bb = res[k][j];
@@ -434,14 +430,15 @@ Vector Matrix::solveGaussCol(const Vector &b) {
 
 Sor Matrix::solveSOR(const Vector &b, double param, double eps) {
     Vector x(b.length());
+    std::vector<double> residual;
 
     int step = 0;
-    Vector m = *this * x;
-    double res = (m - b).norm();
+    double norm;
+    double res = (*this * x - b).norm();
 
     while(res > eps) {
         for(int i = 0; i < this->len; i++) {
-            double norm = 0;
+            norm = 0;
             for(int j = 0; j < this->len; j++) {
                 if(j != i) {
                     norm += this->data[i][j]*x(j);
@@ -450,10 +447,11 @@ Sor Matrix::solveSOR(const Vector &b, double param, double eps) {
             x(i) = (1 - param) * x(i) + (param / this->data[i][i]) * (b(i) - norm);
         }
         res = (*this * x - b).norm();
+        residual.push_back(res);
         step++;
     }
 
-    Sor sorSolution{step, x};
+    Sor sorSolution{step, residual, x};
 
     return sorSolution;
 }

@@ -6,11 +6,7 @@ LU::LU(Matrix a) {
 
     Matrix e = Matrix(a.length());
     for (int i = 0; i < a.length(); i++) {
-        for (int r = 0; r < a.length(); r++) {
-            if(i == r) {
-                e(i, r) = 1;
-            }
-        }
+        e(i, i) = 1;
     }
 
 
@@ -81,10 +77,8 @@ Vector LU::solve(const Vector& b) {
     }
     for (int i = lu.length() - 1; i > -1; i--) {
         x(i)=y(i);
-        int j = i+1;
-        while (j < lu.length()) {
+        for(int j = i+1; j < lu.length(); j++) {
             x(i) -= lu(i, j) * x(j);
-            j++;
         }
         x(i)= x(i) / lu(i, i);
     }

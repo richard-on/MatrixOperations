@@ -6,17 +6,17 @@
 
 class LDLT {
 public:
-    explicit LDLT(Matrix a);
+    explicit LDLT(const Matrix& a);
 
     Vector solve(const Vector& b);
 
-    const Matrix &getL() const;
+    const Matrix &getLLT() const;
 
     const Vector &getD() const;
 
 private:
-    Matrix l;
-    Vector d;
+    Matrix LLT;
+    Vector D;
 };
 
 

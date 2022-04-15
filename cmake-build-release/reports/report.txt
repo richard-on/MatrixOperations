@@ -1,0 +1,50 @@
+----------CONDITIONS----------
+Avg condition number: 4.68316
+Min condition number: 4.52488
+Max condition number: 4.85023
+
+----------INVERSE----------
+Avg inverse time: 5.8 ms
+
+----------GAUSS----------
+Avg time: 2.38 ms
+
+Min norm: 4.66927e-13
+Max norm: 6.53429e-13
+Avg norm: 5.52885e-13
+
+----------GAUSS COLUMN----------
+Avg time: 1.07 ms
+
+Min norm: 4.67005e-13
+Max norm: 6.44179e-13
+Avg norm: 5.5441e-13
+
+----------LUP FACTORIZATION----------
+Avg time: 27.05 ms
+
+----------LUP SOLUTION----------
+Avg time: 0 ms
+
+Min norm: 4.66927e-13
+Max norm: 6.53429e-13
+Avg norm: 5.52885e-13
+
+----------LDLT FACTORIZATION AND SOLUTION----------
+Avg time: 28.18 ms
+
+Min norm: 3.36307e-13
+Max norm: 4.69809e-13
+Avg norm: 4.13678e-13
+
+----------SOR----------
+Avg time: 9.63 ms
+
+Min norm: 6.34557e-12
+Max norm: 1.35775e-11
+Avg norm: 1.00033e-11
+
+Min steps: 24
+Max steps: 24
+Avg steps: 24
+
